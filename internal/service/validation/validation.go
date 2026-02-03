@@ -6,15 +6,15 @@ func Validation(url string, interval, timeout int) bool {
 	}
 
 	return validURL(url) &&
-		isValidInterval(interval) &&
-		isValidTimeout(timeout)
+		IsValidInterval(interval) &&
+		IsValidTimeout(timeout)
 }
 
-func isValidInterval(interval int) bool {
+func IsValidInterval(interval int) bool {
 	return interval > 10 && interval < 3600
 }
 
-func isValidTimeout(timeout int) bool {
+func IsValidTimeout(timeout int) bool {
 	return timeout > 200 && timeout < 10_000
 }
 
@@ -24,5 +24,5 @@ func validURL(url string) bool {
 }
 
 func ValidID(id int, length int) bool {
-	return id < length && id > 0
+	return id < length && id >= 0
 }
