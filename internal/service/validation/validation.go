@@ -1,28 +1,41 @@
 package validation
 
-func Validation(url string, interval, timeout int) bool {
-	if url == "" || interval == 0 || timeout == 0 {
-		return false
+import "errors"
+
+func Validation(url string, interval, timeout int) error {
+	return nil //TODO: сделать возврат конкретной ошибки из трёх
+
+	// return validURL(url) &&
+	// 	IsValidInterval(interval) &&
+	// 	IsValidTimeout(timeout)
+
+}
+
+func IsValidInterval(interval int) error {
+	if interval >= 10 && interval <= 3600 {
+		return nil
 	}
-
-	return validURL(url) &&
-		IsValidInterval(interval) &&
-		IsValidTimeout(timeout)
+	return errors.New("Invalid interval, must be in [10;3600]")
 }
 
-func IsValidInterval(interval int) bool {
-	return interval > 10 && interval < 3600
+func IsValidTimeout(timeout int) error {
+	if timeout >= 200 && timeout <= 10_000 {
+		return nil
+	}
+	return errors.New("Invalid timeout, must be in [200;10000]")
 }
 
-func IsValidTimeout(timeout int) bool {
-	return timeout > 200 && timeout < 10_000
+func validURL(url string) error {
+	// TODO: реальная валидация URL, несколько кейсов, когда URL не валидный
+	if len(url) > 0 {
+		return nil
+	}
+	return nil
 }
 
-func validURL(url string) bool {
-	// TODO: реальная валидация URL
-	return true
-}
-
-func ValidID(id int, length int) bool {
-	return id < length && id >= 0
+func ValidID(id uint64, length int) error {
+	if id < uint64(length) && id >= 0 {
+		return nil
+	}
+	return errors.New("Invalid ID")
 }

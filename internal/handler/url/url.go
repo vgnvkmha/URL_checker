@@ -3,14 +3,16 @@ package url
 import (
 	entities "URL_checker/internal/repo/dto"
 	"URL_checker/internal/service"
+	"context"
 )
 
 type URLHandler interface {
-	PostTarget(url string, interval int, timeout int) bool
-	GetTargets() []entities.URL
-	GetTarget(id int) *entities.URL
-	PatchTarget(params entities.PatchReq, id int) bool
-	DeleteTarget(id int)
+	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
+	Get(ctx context.Context, id uint64) (entities.Targets, error)
+	List(ctx context.Context) ([]entities.Targets, error)
+	Update(ctx context.Context, id uint64, params entities.PatchReq) error
+	Delete(ctx context.Context, id uint64) error
+	ListActive(ctx context.Context) ([]entities.Targets, error)
 }
 
 type URLController struct {
@@ -23,25 +25,26 @@ func New(service service.URLService) URLHandler {
 	}
 }
 
-func (h *URLController) PostTarget(url string, interval int, timeout int) bool {
-	return h.service.PostTarget(url, interval, timeout)
+func (h *URLController) Create(ctx context.Context, t entities.Targets) (entities.Targets, error) {
+	return h.service.Create(ctx, t)
 }
 
-func (h *URLController) GetTargets() []entities.URL {
-	return h.service.GetTargets()
+func (h *URLController) Get(ctx context.Context, id uint64) (entities.Targets, error) {
+	return h.service.Get(ctx, id)
 }
 
-func (h *URLController) GetTarget(id int) *entities.URL {
-	return h.service.GetTarget(id)
+func (h *URLController) List(ctx context.Context) ([]entities.Targets, error) {
+	return h.service.List(ctx)
 }
 
-func (h *URLController) PatchTarget(params entities.PatchReq, id int) bool {
-	if h.service.PatchTarget(params, id) {
-		return true
-	}
-	return false
+func (h *URLController) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
+	return h.service.Update(ctx, id, params)
 }
 
-func (h *URLController) DeleteTarget(id int) {
-	h.service.DeleteTarget(id)
+func (h *URLController) ListActive(ctx context.Context) ([]entities.Targets, error) {
+	return h.service.ListActive(ctx)
+}
+
+func (h *URLController) Delete(ctx context.Context, id uint64) error {
+	return h.service.Delete(ctx, id)
 }
