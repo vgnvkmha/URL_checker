@@ -33,8 +33,8 @@ func validURL(url string) error {
 	return nil
 }
 
-func ValidID(id uint64, length int) error {
-	if id < uint64(length) && id >= 0 {
+func ValidID(id uint64) error {
+	if id >= 0 {
 		return nil
 	}
 	return errors.New("Invalid ID")

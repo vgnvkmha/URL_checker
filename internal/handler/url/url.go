@@ -6,7 +6,7 @@ import (
 	"context"
 )
 
-type URLHandler interface {
+type IURLHandler interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
 	Get(ctx context.Context, id uint64) (entities.Targets, error)
 	List(ctx context.Context) ([]entities.Targets, error)
@@ -15,36 +15,36 @@ type URLHandler interface {
 	ListActive(ctx context.Context) ([]entities.Targets, error)
 }
 
-type URLController struct {
-	service service.URLService
+type URLHandler struct {
+	service service.IURLService
 }
 
-func New(service service.URLService) URLHandler {
-	return &URLController{
+func New(service service.IURLService) IURLHandler {
+	return &URLHandler{
 		service: service,
 	}
 }
 
-func (h *URLController) Create(ctx context.Context, t entities.Targets) (entities.Targets, error) {
+func (h *URLHandler) Create(ctx context.Context, t entities.Targets) (entities.Targets, error) {
 	return h.service.Create(ctx, t)
 }
 
-func (h *URLController) Get(ctx context.Context, id uint64) (entities.Targets, error) {
+func (h *URLHandler) Get(ctx context.Context, id uint64) (entities.Targets, error) {
 	return h.service.Get(ctx, id)
 }
 
-func (h *URLController) List(ctx context.Context) ([]entities.Targets, error) {
+func (h *URLHandler) List(ctx context.Context) ([]entities.Targets, error) {
 	return h.service.List(ctx)
 }
 
-func (h *URLController) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
+func (h *URLHandler) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
 	return h.service.Update(ctx, id, params)
 }
 
-func (h *URLController) ListActive(ctx context.Context) ([]entities.Targets, error) {
+func (h *URLHandler) ListActive(ctx context.Context) ([]entities.Targets, error) {
 	return h.service.ListActive(ctx)
 }
 
-func (h *URLController) Delete(ctx context.Context, id uint64) error {
+func (h *URLHandler) Delete(ctx context.Context, id uint64) error {
 	return h.service.Delete(ctx, id)
 }

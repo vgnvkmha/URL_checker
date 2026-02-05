@@ -5,12 +5,10 @@ import (
 	"URL_checker/internal/repo/queries"
 	"URL_checker/internal/service/validation"
 	"context"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Заменить название на TargetRepository
-type URLService interface {
+type IURLService interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
 	Get(ctx context.Context, id uint64) (entities.Targets, error)
 	List(ctx context.Context) ([]entities.Targets, error)
@@ -19,91 +17,59 @@ type URLService interface {
 	ListActive(ctx context.Context) ([]entities.Targets, error)
 }
 
-type urlService struct {
-	repo       *queries.PostgresRepo
-	activeUrls []entities.Targets
+type URLService struct {
+	repo *queries.PostgresRepo
 }
 
-func New(repo *queries.PostgresRepo) URLService {
-	return &urlService{
+func New(repo *queries.PostgresRepo) IURLService {
+	return &URLService{
 		repo: repo,
 	}
 }
 
-func (s *urlService) Create(
+func (s *URLService) Create(
 	ctx context.Context,
 	t entities.Targets,
 ) (entities.Targets, error) {
 
-	select {
-	case <-ctx.Done():
-		return entities.Targets{}, ctx.Err()
-	default:
-	}
-
-	err := validation.Validation(t.URL, t.IntervalSec, t.TimeoutMS)
+	created, err := s.repo.Create(ctx, t)
 	if err != nil {
 		return entities.Targets{}, err
 	}
 
-	s.repo.Create(ctx, t)
-
-	return t, nil //TODO: Посмотреть, на что ругается
+	return created, nil
 }
 
-func (s *urlService) Get(ctx context.Context, id uint64) (entities.Targets, error) {
-	err := validation.ValidID(id, len(s.activeUrls))
+func (s *URLService) Get(ctx context.Context, id uint64) (entities.Targets, error) {
+	err := validation.ValidID(id)
 	if err != nil {
 		return entities.Targets{}, err
 	}
-	return s.activeUrls[id], nil //TODO: Посмотреть, на что ругается
+	return s.repo.Get(ctx, id) //TODO: Посмотреть, на что ругается
 }
 
-func (s *urlService) List(ctx context.Context) ([]entities.Targets, error) {
-	return s.activeUrls, nil //TODO: Подумать, при каких условиях вывод изменится
+func (s *URLService) List(ctx context.Context) ([]entities.Targets, error) {
+	return s.repo.List(ctx) //TODO: Подумать, при каких условиях вывод изменится
 }
 
-func (s *urlService) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
-	target, err := s.Get(ctx, id)
+func (s *URLService) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
+	err := validation.ValidID(uint64(id))
 	if err != nil {
 		return err
 	}
-	if params.Interval != nil {
-		err := validation.IsValidInterval(*params.Interval)
-		if err != nil {
-			return err
-		}
-		target.IntervalSec = *params.Interval
-		target.UpdatedAt = *timestamppb.Now()
-	}
-
-	if params.Timeout != nil {
-		err := validation.IsValidTimeout(*params.Interval)
-		if err != nil {
-			return err
-		}
-		target.TimeoutMS = *params.Timeout
-		target.UpdatedAt = *timestamppb.Now()
-	}
-
-	if params.Active != nil {
-		target.Active = *params.Active
-		target.UpdatedAt = *timestamppb.Now()
-	}
-
-	return nil
+	return s.repo.Update(ctx, id, params)
 }
 
-func (s *urlService) Delete(ctx context.Context, id uint64) error {
-	err := validation.ValidID(uint64(id), len(s.activeUrls))
+func (s *URLService) Delete(ctx context.Context, id uint64) error {
+	err := validation.ValidID(uint64(id))
 	if err != nil {
 		return err
 	}
-	s.activeUrls = append(s.activeUrls[:id], s.activeUrls[id+1:]...)
+	s.repo.Delete(ctx, id)
 	return nil
 }
 
 // TODO: после интеграции пострегесс вернуть все Targets с активным статусом, можно как-то сгруппировать
-func (s *urlService) ListActive(ctx context.Context) ([]entities.Targets, error) {
-	return nil, nil
+func (s *URLService) ListActive(ctx context.Context) ([]entities.Targets, error) {
+	return s.repo.ListActive(ctx)
 }

@@ -31,6 +31,20 @@ func main() {
 		c.JSON(200, gin.H{"current_targets": targets})
 	})
 
+	router.GET("/targets/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(400, gin.H{"error": "id should be int"})
+			return
+		}
+		target, err1 := handler.Get(c.Request.Context(), uint64(id))
+		if err1 != nil {
+			c.JSON(400, gin.H{"error": err1.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"target": target})
+	})
+
 	router.POST("/targets", func(c *gin.Context) {
 		var params entities.Targets
 		if err := c.ShouldBindJSON(&params); err != nil {
@@ -40,7 +54,7 @@ func main() {
 			return
 		}
 
-		target, err1 := handler.Create(c.Request.Context(), params) //TODO: посмотреть, откуда взять контекст
+		target, err1 := handler.Create(c.Request.Context(), params)
 		if err1 != nil {
 			c.JSON(400, gin.H{"error": err1.Error()})
 			return
@@ -61,7 +75,7 @@ func main() {
 			return
 		}
 
-		err1 := handler.Update(nil, uint64(id), req)
+		err1 := handler.Update(c.Request.Context(), uint64(id), req)
 		if err1 != nil {
 			c.JSON(400, gin.H{"error": err1.Error()})
 			return
@@ -75,7 +89,7 @@ func main() {
 			c.JSON(400, gin.H{"error": "id should be int"})
 			return
 		}
-		err1 := handler.Delete(nil, uint64(id))
+		err1 := handler.Delete(c.Request.Context(), uint64(id))
 		if err1 != nil {
 			c.JSON(400, gin.H{"error": err1.Error()})
 			return
