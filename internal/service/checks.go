@@ -1,18 +1,45 @@
 package service
 
 import (
-	entities "URL_checker/internal/repo/dto"
+	"URL_checker/internal/repo/checks"
+	"URL_checker/internal/repo/dto"
+	"URL_checker/internal/service/validation"
 	"context"
+	"time"
 )
 
-type Checker interface {
-	Check(ctx context.Context, target entities.Targets) (entities.Checks, error)
+type ICheckService interface {
+	Insert(ctx context.Context, r dto.Checks) error
+	LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error)
+	ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error)
 }
 
-type Checkerr struct {
-	repo []entities.Checks
+type CheckService struct {
+	repo checks.ICheckRepository
 }
 
-func (c *Checkerr) Check(ctx context.Context, target entities.Targets) (entities.Checks, error) {
-	return entities.Checks{}, nil
+func NewCheckService(repo checks.ICheckRepository) ICheckService {
+	return &CheckService{
+		repo: repo,
+	}
+}
+
+func (s *CheckService) Insert(ctx context.Context, r dto.Checks) error {
+	return s.repo.Insert(ctx, r)
+}
+
+func (s *CheckService) LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error) {
+	err := validation.ValidID(targetID)
+	if err != nil {
+		return dto.Checks{}, err
+	}
+	return s.repo.LatestByTarget(ctx, targetID)
+}
+
+func (s *CheckService) ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error) {
+	err := validation.ValidID(targetID)
+	if err != nil {
+		return []dto.Checks{}, err
+	}
+	return s.repo.ListByTarget(ctx, targetID, limit, from, to)
 }

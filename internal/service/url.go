@@ -2,7 +2,7 @@ package service
 
 import (
 	entities "URL_checker/internal/repo/dto"
-	"URL_checker/internal/repo/queries"
+	"URL_checker/internal/repo/target"
 	"URL_checker/internal/service/validation"
 	"context"
 )
@@ -18,10 +18,10 @@ type IURLService interface {
 }
 
 type URLService struct {
-	repo *queries.PostgresRepo
+	repo *target.TargetRepo
 }
 
-func New(repo *queries.PostgresRepo) IURLService {
+func New(repo *target.TargetRepo) IURLService {
 	return &URLService{
 		repo: repo,
 	}

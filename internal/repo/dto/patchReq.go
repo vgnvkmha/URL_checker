@@ -1,4 +1,4 @@
-package entities
+package dto
 
 type PatchReq struct {
 	Interval *int  `json:"interval,omitempty"`

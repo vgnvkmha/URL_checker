@@ -1,4 +1,4 @@
-package queries
+package target
 
 import (
 	entities "URL_checker/internal/repo/dto"
@@ -11,31 +11,23 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type TargetRepo interface {
+type ITargetRepo interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
 	GetByID(ctx context.Context, id int) (entities.Targets, error)
 	Update(ctx context.Context, t entities.Targets) error
 	Delete(ctx context.Context, id int) error
+	ListActive(ctx context.Context) ([]entities.Targets, error)
 }
 
-type PostgresRepo struct {
+type TargetRepo struct {
 	db *sql.DB
 }
 
-func NewPostgresRepo(dsn string) (*PostgresRepo, error) {
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err // не смогли открыть соединение
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err // база не отвечает
-	}
-
-	return &PostgresRepo{db: db}, nil
+func New(db *sql.DB) (*TargetRepo, error) {
+	return &TargetRepo{db: db}, nil
 }
 
-func (r *PostgresRepo) Create(
+func (r *TargetRepo) Create(
 	ctx context.Context,
 	t entities.Targets,
 ) (entities.Targets, error) {
@@ -66,7 +58,7 @@ func (r *PostgresRepo) Create(
 	return t, nil
 }
 
-func (r *PostgresRepo) Get(
+func (r *TargetRepo) Get(
 	ctx context.Context,
 	id uint64,
 ) (entities.Targets, error) {
@@ -96,7 +88,7 @@ func (r *PostgresRepo) Get(
 	return t, nil
 }
 
-func (r *PostgresRepo) Update(
+func (r *TargetRepo) Update(
 	ctx context.Context,
 	id uint64,
 	req entities.PatchReq,
@@ -141,7 +133,7 @@ func (r *PostgresRepo) Update(
 	return err
 }
 
-func (r *PostgresRepo) List(ctx context.Context) ([]entities.Targets, error) {
+func (r *TargetRepo) List(ctx context.Context) ([]entities.Targets, error) {
 	query := `
 		SELECT
 			id,
@@ -188,7 +180,7 @@ func (r *PostgresRepo) List(ctx context.Context) ([]entities.Targets, error) {
 	return targets, nil
 }
 
-func (r *PostgresRepo) Delete(ctx context.Context, id uint64) error {
+func (r *TargetRepo) Delete(ctx context.Context, id uint64) error {
 	query := `
 		DELETE FROM targets
 		WHERE id = $1
@@ -211,7 +203,7 @@ func (r *PostgresRepo) Delete(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *PostgresRepo) ListActive(ctx context.Context) ([]entities.Targets, error) {
+func (r *TargetRepo) ListActive(ctx context.Context) ([]entities.Targets, error) {
 	query := `
 		SELECT
 			id,
