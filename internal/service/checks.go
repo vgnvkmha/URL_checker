@@ -3,13 +3,12 @@ package service
 import (
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
-	"URL_checker/internal/service/validation"
 	"context"
 	"time"
 )
 
 type ICheckService interface {
-	Insert(ctx context.Context, r dto.Checks) error
+	Insert(ctx context.Context, r dto.Checks) (dto.Checks, error)
 	LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error)
 	ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error)
 }
@@ -24,22 +23,14 @@ func NewCheckService(repo checks.ICheckRepository) ICheckService {
 	}
 }
 
-func (s *CheckService) Insert(ctx context.Context, r dto.Checks) error {
+func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, error) {
 	return s.repo.Insert(ctx, r)
 }
 
 func (s *CheckService) LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error) {
-	err := validation.ValidID(targetID)
-	if err != nil {
-		return dto.Checks{}, err
-	}
 	return s.repo.LatestByTarget(ctx, targetID)
 }
 
 func (s *CheckService) ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error) {
-	err := validation.ValidID(targetID)
-	if err != nil {
-		return []dto.Checks{}, err
-	}
 	return s.repo.ListByTarget(ctx, targetID, limit, from, to)
 }

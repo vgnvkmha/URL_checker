@@ -8,7 +8,7 @@ import (
 )
 
 type ICheckRepository interface {
-	Insert(ctx context.Context, r dto.Checks) error
+	Insert(ctx context.Context, r dto.Checks) (dto.Checks, error)
 	LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error)
 	ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error)
 }
@@ -16,7 +16,11 @@ type CheckRepository struct {
 	db *sql.DB
 }
 
-func (rCheck *CheckRepository) Insert(ctx context.Context, r dto.Checks) error {
+func New(db *sql.DB) (*CheckRepository, error) {
+	return &CheckRepository{db: db}, nil
+}
+
+func (rCheck *CheckRepository) Insert(ctx context.Context, r dto.Checks) (dto.Checks, error) {
 	query := `
 		INSERT INTO checks (target_id, ok, status_code, latency_ms, error)
 		VALUES ($1, $2, $3, $4, $5)
@@ -35,10 +39,10 @@ func (rCheck *CheckRepository) Insert(ctx context.Context, r dto.Checks) error {
 		&r.CheckedAt,
 	)
 	if err != nil {
-		return err
+		return dto.Checks{}, err
 	}
 
-	return nil
+	return r, nil
 }
 
 func (rCheck *CheckRepository) LatestByTarget(

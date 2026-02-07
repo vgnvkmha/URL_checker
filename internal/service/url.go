@@ -3,25 +3,23 @@ package service
 import (
 	entities "URL_checker/internal/repo/dto"
 	"URL_checker/internal/repo/target"
-	"URL_checker/internal/service/validation"
 	"context"
 )
 
-// Заменить название на TargetRepository
 type IURLService interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
-	Get(ctx context.Context, id uint64) (entities.Targets, error)
+	Get(ctx context.Context, id int) (entities.Targets, error)
 	List(ctx context.Context) ([]entities.Targets, error)
-	Update(ctx context.Context, id uint64, params entities.PatchReq) error
-	Delete(ctx context.Context, id uint64) error
+	Update(ctx context.Context, id int, params entities.PatchReq) error
+	Delete(ctx context.Context, id int) error
 	ListActive(ctx context.Context) ([]entities.Targets, error)
 }
 
 type URLService struct {
-	repo *target.TargetRepo
+	repo target.ITargetRepo
 }
 
-func New(repo *target.TargetRepo) IURLService {
+func New(repo target.ITargetRepo) *URLService {
 	return &URLService{
 		repo: repo,
 	}
@@ -40,36 +38,23 @@ func (s *URLService) Create(
 	return created, nil
 }
 
-func (s *URLService) Get(ctx context.Context, id uint64) (entities.Targets, error) {
-	err := validation.ValidID(id)
-	if err != nil {
-		return entities.Targets{}, err
-	}
-	return s.repo.Get(ctx, id) //TODO: Посмотреть, на что ругается
+func (s *URLService) Get(ctx context.Context, id int) (entities.Targets, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *URLService) List(ctx context.Context) ([]entities.Targets, error) {
-	return s.repo.List(ctx) //TODO: Подумать, при каких условиях вывод изменится
+	return s.repo.List(ctx)
 }
 
-func (s *URLService) Update(ctx context.Context, id uint64, params entities.PatchReq) error {
-	err := validation.ValidID(uint64(id))
-	if err != nil {
-		return err
-	}
+func (s *URLService) Update(ctx context.Context, id int, params entities.PatchReq) error {
 	return s.repo.Update(ctx, id, params)
 }
 
-func (s *URLService) Delete(ctx context.Context, id uint64) error {
-	err := validation.ValidID(uint64(id))
-	if err != nil {
-		return err
-	}
+func (s *URLService) Delete(ctx context.Context, id int) error {
 	s.repo.Delete(ctx, id)
 	return nil
 }
 
-// TODO: после интеграции пострегесс вернуть все Targets с активным статусом, можно как-то сгруппировать
 func (s *URLService) ListActive(ctx context.Context) ([]entities.Targets, error) {
 	return s.repo.ListActive(ctx)
 }

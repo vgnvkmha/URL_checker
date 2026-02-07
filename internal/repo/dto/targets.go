@@ -5,7 +5,7 @@ import (
 )
 
 type Targets struct {
-	ID          uint64    `json:"id"` //TODO: сделать праймари ключом
+	ID          uint64    `json:"id"`
 	URL         string    `json:"url"`
 	IntervalSec int       `json:"interval_sec"`
 	TimeoutMS   int       `json:"timeous_ms"`

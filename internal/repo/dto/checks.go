@@ -10,6 +10,6 @@ type Checks struct {
 	CheckedAt  time.Time `json:"checked_at"`
 	OK         bool      `json:"ok"`
 	StatusCode uint8     `json:"status_code"`
-	LatencyMs  uint8     `json:"latency_ms"`
+	LatencyMs  int64     `json:"latency_ms"`
 	Error      string    `json:"error"`
 }

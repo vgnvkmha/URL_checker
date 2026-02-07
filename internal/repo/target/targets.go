@@ -14,23 +14,21 @@ import (
 type ITargetRepo interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
 	GetByID(ctx context.Context, id int) (entities.Targets, error)
-	Update(ctx context.Context, t entities.Targets) error
+	Update(ctx context.Context, id int, req entities.PatchReq) error
 	Delete(ctx context.Context, id int) error
 	ListActive(ctx context.Context) ([]entities.Targets, error)
+	List(ctx context.Context) ([]entities.Targets, error)
 }
 
 type TargetRepo struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) (*TargetRepo, error) {
+func New(db *sql.DB) (ITargetRepo, error) {
 	return &TargetRepo{db: db}, nil
 }
 
-func (r *TargetRepo) Create(
-	ctx context.Context,
-	t entities.Targets,
-) (entities.Targets, error) {
+func (r *TargetRepo) Create(ctx context.Context, t entities.Targets) (entities.Targets, error) {
 
 	query := `
 		INSERT INTO targets (url, interval_sec, timeout_ms, active)
@@ -58,10 +56,7 @@ func (r *TargetRepo) Create(
 	return t, nil
 }
 
-func (r *TargetRepo) Get(
-	ctx context.Context,
-	id uint64,
-) (entities.Targets, error) {
+func (r *TargetRepo) GetByID(ctx context.Context, id int) (entities.Targets, error) {
 
 	var t entities.Targets
 
@@ -88,11 +83,7 @@ func (r *TargetRepo) Get(
 	return t, nil
 }
 
-func (r *TargetRepo) Update(
-	ctx context.Context,
-	id uint64,
-	req entities.PatchReq,
-) error {
+func (r *TargetRepo) Update(ctx context.Context, id int, req entities.PatchReq) error {
 
 	setParts := make([]string, 0)
 	args := make([]any, 0)
@@ -133,7 +124,9 @@ func (r *TargetRepo) Update(
 	return err
 }
 
-func (r *TargetRepo) List(ctx context.Context) ([]entities.Targets, error) {
+func (r *TargetRepo) List(
+	ctx context.Context,
+) ([]entities.Targets, error) {
 	query := `
 		SELECT
 			id,
@@ -180,7 +173,7 @@ func (r *TargetRepo) List(ctx context.Context) ([]entities.Targets, error) {
 	return targets, nil
 }
 
-func (r *TargetRepo) Delete(ctx context.Context, id uint64) error {
+func (r *TargetRepo) Delete(ctx context.Context, id int) error {
 	query := `
 		DELETE FROM targets
 		WHERE id = $1

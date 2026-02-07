@@ -1,6 +1,7 @@
 package url
 
 import (
+	"URL_checker/internal/repo/dto"
 	entities "URL_checker/internal/repo/dto"
 	"URL_checker/internal/service"
 	"strconv"
@@ -49,12 +50,14 @@ func (h *URLHandler) Create(c *gin.Context) {
 }
 
 func (h *URLHandler) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "id should be int"})
+		c.JSON(400, gin.H{"error": "invalid id"})
 		return
 	}
-	target, err1 := h.service.Get(c.Request.Context(), uint64(id))
+
+	target, err1 := h.service.Get(c.Request.Context(), int(id))
 	if err1 != nil {
 		c.JSON(400, gin.H{"error": err1.Error()})
 		return
@@ -72,19 +75,21 @@ func (h *URLHandler) List(c *gin.Context) {
 }
 
 func (h *URLHandler) Update(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	idStr := c.Param("id")
+
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "id should be int"})
+		c.JSON(400, gin.H{"error": "invalid id"})
 		return
 	}
 
-	var req entities.PatchReq
+	var req dto.PatchReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err1 := h.service.Update(c.Request.Context(), uint64(id), req)
+	err1 := h.service.Update(c.Request.Context(), int(id), req)
 	if err1 != nil {
 		c.JSON(400, gin.H{"error": err1.Error()})
 		return
@@ -95,16 +100,18 @@ func (h *URLHandler) Update(c *gin.Context) {
 
 // TODO: Сделать реализацию
 func (h *URLHandler) ListActive(c *gin.Context) {
-	return
+
 }
 
 func (h *URLHandler) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	idStr := c.Param("id")
+
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "id should be int"})
+		c.JSON(400, gin.H{"error": "invalid id"})
 		return
 	}
-	err1 := h.service.Delete(c.Request.Context(), uint64(id))
+	err1 := h.service.Delete(c.Request.Context(), int(id))
 	if err1 != nil {
 		c.JSON(400, gin.H{"error": err1.Error()})
 		return

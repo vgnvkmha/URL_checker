@@ -1,6 +1,7 @@
 package service
 
 import (
+	"URL_checker/internal/repo/dto"
 	entities "URL_checker/internal/repo/dto"
 	"context"
 )
@@ -10,7 +11,7 @@ type Checker interface {
 }
 
 type Checkerr struct {
-	repo []entities.Checks
+	targetsToCheck []dto.Targets
 }
 
 func (c *Checkerr) Check(ctx context.Context, target entities.Targets) (entities.Checks, error) {
