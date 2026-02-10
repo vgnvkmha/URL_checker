@@ -1,9 +1,9 @@
-package url
+package targetHandler
 
 import (
 	"URL_checker/internal/repo/dto"
 	entities "URL_checker/internal/repo/dto"
-	"URL_checker/internal/service"
+	serviceTarget "URL_checker/internal/service/target"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -19,10 +19,10 @@ type IURLHandler interface {
 }
 
 type URLHandler struct {
-	service service.IURLService
+	service serviceTarget.IURLService
 }
 
-func New(service service.IURLService) IURLHandler {
+func New(service serviceTarget.IURLService) IURLHandler {
 	return &URLHandler{
 		service: service,
 	}

@@ -1,4 +1,4 @@
-package url
+package targetHandler
 
 import "github.com/gin-gonic/gin"
 

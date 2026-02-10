@@ -1,4 +1,4 @@
-package service
+package serviceChecker
 
 import (
 	"URL_checker/internal/repo/checks"

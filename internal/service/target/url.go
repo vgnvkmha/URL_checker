@@ -1,4 +1,4 @@
-package service
+package serviceTarget
 
 import (
 	entities "URL_checker/internal/repo/dto"

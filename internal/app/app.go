@@ -3,22 +3,29 @@ package app
 import (
 	"URL_checker/internal/checker"
 	checksHandler "URL_checker/internal/handler/checks"
-	"URL_checker/internal/handler/url"
+	url "URL_checker/internal/handler/target"
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
 	"URL_checker/internal/repo/target"
 	"URL_checker/internal/scheduler"
-	"URL_checker/internal/service"
+	serviceChecker "URL_checker/internal/service/check"
+	serviceTarget "URL_checker/internal/service/target"
 	"URL_checker/internal/workerpool"
 	"URL_checker/internal/writer"
 	"context"
 	"database/sql"
+	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Run() error {
-	dsn := "postgres://pavelpavlov@localhost:5432/postgres?sslmode=disable"
+	dsn := os.Getenv("DATABASE_DSN")
+	if dsn == "" {
+		log.Fatal("DATABASE_DSN is not set")
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -36,7 +43,7 @@ func Run() error {
 		return err
 	}
 
-	targetService := service.New(targetRepo)
+	targetService := serviceTarget.New(targetRepo)
 	targetHandler := url.New(targetService)
 
 	checkRepo, errCheck := checks.New(db)
@@ -57,7 +64,7 @@ func Run() error {
 	workers.Start(ctx, queue)
 	go scheduler.Run(ctx)
 
-	checkService := service.NewCheckService(checkRepo)
+	checkService := serviceChecker.NewCheckService(checkRepo)
 	checkHandler := checksHandler.NewCheckHandler(checkService)
 
 	router := gin.Default()

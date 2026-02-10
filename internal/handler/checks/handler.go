@@ -2,7 +2,7 @@ package checksHandler
 
 import (
 	"URL_checker/internal/repo/dto"
-	"URL_checker/internal/service"
+	serviceChecker "URL_checker/internal/service/check"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -15,10 +15,10 @@ type ICheckHandler interface {
 }
 
 type CheckHandler struct {
-	service service.ICheckService
+	service serviceChecker.ICheckService
 }
 
-func NewCheckHandler(service service.ICheckService) ICheckHandler {
+func NewCheckHandler(service serviceChecker.ICheckService) ICheckHandler {
 	return &CheckHandler{
 		service: service,
 	}
