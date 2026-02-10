@@ -16,11 +16,20 @@ type HTTPChecker struct {
 	client *http.Client
 }
 
-func NewHTTPChecker(timeout time.Duration) *HTTPChecker {
+func NewHTTPChecker() *HTTPChecker {
 	return &HTTPChecker{
-		client: &http.Client{
-			Timeout: timeout, // запасной таймаут
-		},
+		client: NewHTTPClient(),
+	}
+}
+
+func NewHTTPClient() *http.Client {
+	tr := &http.Transport{
+		ForceAttemptHTTP2: true, // как браузер
+	}
+
+	return &http.Client{
+		Timeout:   15 * time.Second,
+		Transport: tr,
 	}
 }
 
@@ -31,12 +40,13 @@ func (c *HTTPChecker) Check(
 
 	start := time.Now()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target.URL, nil)
-	if err != nil {
-		return dto.Checks{}, err
-	}
+	req, _ := http.NewRequest(http.MethodGet, target.URL, nil)
 
-	resp, err := c.client.Do(req)
+	req.Header.Set("User-Agent", "curl/8.0")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml")
+	req.Header.Set("Accept-Language", "ru-RU,ru;q=0.9")
+
+	resp, err := http.DefaultClient.Do(req)
 	latency := time.Since(start)
 	log.Printf(
 		"CHECK done target=%d ok=%v",

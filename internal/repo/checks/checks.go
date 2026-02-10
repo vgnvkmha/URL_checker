@@ -4,6 +4,7 @@ import (
 	"URL_checker/internal/repo/dto"
 	"context"
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -21,6 +22,17 @@ func New(db *sql.DB) (*CheckRepository, error) {
 }
 
 func (rCheck *CheckRepository) Insert(ctx context.Context, r dto.Checks) (dto.Checks, error) {
+	row := rCheck.db.QueryRowContext(ctx, `
+    SELECT
+        current_database(),
+        current_schema(),
+        current_setting('search_path')
+	`)
+	var db, schema, path string
+	_ = row.Scan(&db, &schema, &path)
+
+	log.Printf("DB=%s SCHEMA=%s SEARCH_PATH=%s", db, schema, path)
+
 	query := `
 		INSERT INTO checks (target_id, ok, status_code, latency_ms, error)
 		VALUES ($1, $2, $3, $4, $5)

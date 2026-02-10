@@ -20,7 +20,7 @@ func IsValidTimeout(timeout int) error {
 	return errors.New("Invalid timeout, must be in [200;10000]")
 }
 
-func validURL(raw string) error {
+func ValidURL(raw string) error {
 	if strings.TrimSpace(raw) == "" {
 		return errors.New("url is empty")
 	}

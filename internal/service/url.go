@@ -3,7 +3,9 @@ package service
 import (
 	entities "URL_checker/internal/repo/dto"
 	"URL_checker/internal/repo/target"
+	"URL_checker/internal/service/validation"
 	"context"
+	"errors"
 )
 
 type IURLService interface {
@@ -29,6 +31,10 @@ func (s *URLService) Create(
 	ctx context.Context,
 	t entities.Targets,
 ) (entities.Targets, error) {
+
+	if validation.ValidURL(t.URL) != nil {
+		return entities.Targets{}, errors.New("Invalid URL")
+	}
 
 	created, err := s.repo.Create(ctx, t)
 	if err != nil {
