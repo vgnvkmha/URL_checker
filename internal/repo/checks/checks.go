@@ -5,13 +5,12 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"time"
 )
 
 type ICheckRepository interface {
 	Insert(ctx context.Context, r dto.Checks) (dto.Checks, error)
 	LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error)
-	ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error)
+	ListByTarget(ctx context.Context, targetID uint64, limit int) ([]dto.Checks, error)
 }
 type CheckRepository struct {
 	db *sql.DB
@@ -97,7 +96,6 @@ func (rCheck *CheckRepository) ListByTarget(
 	ctx context.Context,
 	targetID uint64,
 	limit int,
-	from, to time.Time,
 ) ([]dto.Checks, error) {
 
 	query := `
@@ -111,17 +109,14 @@ func (rCheck *CheckRepository) ListByTarget(
 			error
 		FROM checks
 		WHERE target_id = $1
-		  AND checked_at BETWEEN $2 AND $3
 		ORDER BY checked_at DESC
-		LIMIT $4
+		LIMIT $2
 	`
 
 	rows, err := rCheck.db.QueryContext(
 		ctx,
 		query,
 		targetID,
-		from,
-		to,
 		limit,
 	)
 	if err != nil {

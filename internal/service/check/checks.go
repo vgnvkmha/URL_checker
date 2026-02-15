@@ -4,13 +4,12 @@ import (
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
 	"context"
-	"time"
 )
 
 type ICheckService interface {
 	Insert(ctx context.Context, r dto.Checks) (dto.Checks, error)
 	LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error)
-	ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error)
+	ListByTarget(ctx context.Context, targetID uint64, limit int) ([]dto.Checks, error)
 }
 
 type CheckService struct {
@@ -31,6 +30,6 @@ func (s *CheckService) LatestByTarget(ctx context.Context, targetID uint64) (dto
 	return s.repo.LatestByTarget(ctx, targetID)
 }
 
-func (s *CheckService) ListByTarget(ctx context.Context, targetID uint64, limit int, from, to time.Time) ([]dto.Checks, error) {
-	return s.repo.ListByTarget(ctx, targetID, limit, from, to)
+func (s *CheckService) ListByTarget(ctx context.Context, targetID uint64, limit int) ([]dto.Checks, error) {
+	return s.repo.ListByTarget(ctx, targetID, limit)
 }

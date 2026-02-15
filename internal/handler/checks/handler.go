@@ -60,21 +60,17 @@ func (h *CheckHandler) LatestByTarget(c *gin.Context) {
 	c.JSON(200, gin.H{"target": target})
 }
 
-// TODO: вывод немного другой
 func (h *CheckHandler) ListByTarget(c *gin.Context) {
-
-	var req dto.ChecksList
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid id"})
 		return
 	}
-
 	targets, err1 := h.service.ListByTarget(
 		c.Request.Context(),
-		req.TargetId,
-		req.Limit,
-		req.From,
-		req.To,
+		id,
+		5,
 	)
 	if err1 != nil {
 		c.JSON(400, gin.H{"error": err1.Error()})

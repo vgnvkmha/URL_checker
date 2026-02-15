@@ -26,6 +26,11 @@ func Run() error {
 		log.Fatal("DATABASE_DSN is not set")
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -48,7 +53,7 @@ func Run() error {
 
 	checkRepo, errCheck := checks.New(db)
 	if errCheck != nil {
-		return err
+		return errCheck
 	}
 
 	// ===== checker pipeline =====
@@ -71,5 +76,5 @@ func Run() error {
 	url.RegisterRoutes(router, targetHandler)
 	checksHandler.RegisterRoutes(router, checkHandler)
 
-	return router.Run(":8080")
+	return router.Run(":" + port)
 }

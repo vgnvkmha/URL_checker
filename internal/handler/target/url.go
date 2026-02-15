@@ -98,9 +98,8 @@ func (h *URLHandler) Update(c *gin.Context) {
 
 }
 
-// TODO: Сделать реализацию
 func (h *URLHandler) ListActive(c *gin.Context) {
-
+	h.service.ListActive(c.Request.Context())
 }
 
 func (h *URLHandler) Delete(c *gin.Context) {
