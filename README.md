@@ -69,8 +69,9 @@ go run main.go
 Пример body:
 ```
 {
-  "interval_sec": 60,
-  "timeout_ms": 2000
+  "interval": 60,
+  "timeout": 2000,
+  "active": false
 }
 ```
 
