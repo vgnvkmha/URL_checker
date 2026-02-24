@@ -4,6 +4,8 @@ import (
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
 	"context"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type ICheckService interface {
@@ -13,12 +15,14 @@ type ICheckService interface {
 }
 
 type CheckService struct {
-	repo checks.ICheckRepository
+	repo  checks.ICheckRepository
+	redis *redis.Client
 }
 
-func NewCheckService(repo checks.ICheckRepository) ICheckService {
+func NewCheckService(repo checks.ICheckRepository, redisClient *redis.Client) ICheckService {
 	return &CheckService{
-		repo: repo,
+		repo:  repo,
+		redis: redisClient,
 	}
 }
 

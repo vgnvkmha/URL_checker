@@ -24,19 +24,27 @@
 ```bash
 psql -U postgres -d your_db -f schema.sql
 ```
-4. Установить переменные окружения:
+4. Создать .env файл в корне проекта:
 
 ```bash
-export DATABASE_DSN="postgres://user:password@localhost:5432/your_db?sslmode=disable"
-export PORT=8080
+# PostgreSQL
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_NAME=your_name
+DB_SSLMODE=disable
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your_password
+REDIS_DB=0
 ```
-5. Запустить приложение
+5. Запустить приложение из корня проекта, чтобы переменные окружения считались
 ```bash
-cd cmd/api
-go run main.go
+go run ./cmd/api/main.go
 ```
-После запуска сервис будет доступен по адресу:
-`http://localhost:8080`
 
 ---
 

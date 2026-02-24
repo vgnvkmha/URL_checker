@@ -14,6 +14,7 @@ type ICheckRepository interface {
 }
 type CheckRepository struct {
 	db *sql.DB
+	// redisClient redis.Client
 }
 
 func New(db *sql.DB) (*CheckRepository, error) {
