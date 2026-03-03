@@ -1,10 +1,13 @@
 package configs
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"strconv"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type RedisConfig struct {
@@ -20,14 +23,12 @@ func (c *RedisConfig) DSN() string {
 		Host:   fmt.Sprintf("%s:%s", c.Host, c.Port),
 	}
 
-	// Если есть пароль
 	if c.Password != "" {
 		u.User = url.UserPassword("", c.Password)
 	}
 
-	// Номер базы (db)
 	if c.DB != 0 {
-		u.Path = "/" + string(c.DB)
+		u.Path = "/" + string(rune(c.DB))
 	}
 
 	return u.String()
@@ -52,4 +53,22 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func NewRedisClient(cfg *RedisConfig) (*redis.Client, error) {
+	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: cfg.Password,
+		DB:       cfg.DB,
+	})
+
+	// Проверка подключения
+	ctx := context.Background()
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		return nil, err
+	}
+
+	return rdb, nil
 }
