@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/singleflight"
 )
 
 func Run() error {
@@ -50,7 +51,9 @@ func Run() error {
 	if cache == nil {
 		log.Fatal("Nil cache")
 	}
-	targetService := serviceTarget.New(targetRepo, cache)
+
+	var group *singleflight.Group
+	targetService := serviceTarget.New(targetRepo, cache, group)
 	targetHandler := url.New(targetService)
 
 	checkRepo, errCheck := checks.New(pgDb)

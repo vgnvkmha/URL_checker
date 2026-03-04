@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 type IURLService interface {
@@ -25,12 +27,14 @@ type IURLService interface {
 type URLService struct {
 	repo  target.ITargetRepo
 	cache cache.IRedisCache
+	group *singleflight.Group
 }
 
-func New(repo target.ITargetRepo, cache cache.IRedisCache) *URLService {
+func New(repo target.ITargetRepo, cache cache.IRedisCache, group *singleflight.Group) *URLService { //TODO: посмотреть, на что ругается
 	return &URLService{
 		repo:  repo,
 		cache: cache,
+		group: group,
 	}
 }
 
@@ -75,18 +79,40 @@ func (s *URLService) Get(ctx context.Context, id int) (entities.Targets, error) 
 		if err == nil {
 			return dto, nil
 		}
-		// если ошибка десериализации — идём в БД
 	}
 
-	target, err := s.repo.GetByID(ctx, id)
-	if err != nil {
-		return entities.Targets{}, err
+	//singleflight через DoChan
+	ch := s.group.DoChan(key, func() (interface{}, error) {
+
+		data, err := s.cache.Get(ctx, key)
+		if err == nil {
+			dto, err := mapper.ToTarget(data)
+			if err == nil {
+				return dto, nil
+			}
+		}
+
+		target, err := s.repo.GetByID(ctx, id)
+		if err != nil {
+			return entities.Targets{}, err
+		}
+
+		dto, _ := mapper.FromTarget(target)
+		_ = s.cache.Set(ctx, key, dto, DURATION)
+
+		return target, nil
+	})
+
+	select {
+	case res := <-ch:
+		if res.Err != nil {
+			return entities.Targets{}, res.Err
+		}
+		return res.Val.(entities.Targets), nil
+
+	case <-ctx.Done():
+		return entities.Targets{}, ctx.Err()
 	}
-
-	dto, _ := mapper.FromTarget(target)
-	err = s.cache.Set(ctx, key, dto, DURATION)
-
-	return target, err
 }
 
 func (s *URLService) List(ctx context.Context) ([]entities.Targets, error) {
