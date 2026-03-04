@@ -71,7 +71,7 @@ func Run() error {
 	workers.Start(ctx, queue)
 	go scheduler.Run(ctx)
 
-	checkService := serviceChecker.NewCheckService(checkRepo, redisClient)
+	checkService := serviceChecker.NewCheckService(checkRepo, cache)
 	checkHandler := checksHandler.NewCheckHandler(checkService)
 
 	router := gin.Default()

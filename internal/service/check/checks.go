@@ -1,11 +1,18 @@
 package serviceChecker
 
 import (
+	"URL_checker/internal/mapper"
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
+	"URL_checker/internal/service/cache"
 	"context"
+	"fmt"
+	"strconv"
+	"time"
+)
 
-	"github.com/redis/go-redis/v9"
+const (
+	DURATION = time.Minute * 5
 )
 
 type ICheckService interface {
@@ -16,17 +23,24 @@ type ICheckService interface {
 
 type CheckService struct {
 	repo  checks.ICheckRepository
-	redis *redis.Client
+	cache cache.IRedisCache
 }
 
-func NewCheckService(repo checks.ICheckRepository, redisClient *redis.Client) ICheckService {
+func NewCheckService(repo checks.ICheckRepository, cache cache.IRedisCache) ICheckService {
 	return &CheckService{
 		repo:  repo,
-		redis: redisClient,
+		cache: cache,
 	}
 }
 
 func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, error) {
+	key := strconv.Itoa(int(r.ID))
+	value, err := mapper.FromCheck(r)
+	if err != nil {
+		fmt.Println("------------- NOT SETTING IN REDIS ---------------")
+		return s.repo.Insert(ctx, r)
+	}
+	_ = s.cache.Set(ctx, key, value, DURATION)
 	return s.repo.Insert(ctx, r)
 }
 

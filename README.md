@@ -41,7 +41,7 @@ REDIS_PORT=6379
 REDIS_PASSWORD=your_password
 REDIS_DB=0
 ```
-5. Запустить приложение из корня проекта, чтобы переменные окружения считались
+5. Запустить приложение
 ```bash
 go run ./cmd/api/main.go
 ```
@@ -52,11 +52,11 @@ go run ./cmd/api/main.go
 
 ### 🔹 Работа с URL (Targets)
 
-#### Получить список всех URL
+#### Получить список всех URL из кэша (недавно добавленные)
 `GET /targets`
 
 #### Получить URL по ID
-`GET /targets/{id}`
+`GET /target/{id}`
 
 #### Добавить URL
 `POST /targets`
