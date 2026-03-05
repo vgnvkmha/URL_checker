@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -28,16 +29,19 @@ type IURLService interface {
 }
 
 type URLService struct {
-	repo  target.ITargetRepo
-	cache cache.IRedisCache
-	group *singleflight.Group
+	repo   target.ITargetRepo
+	cache  cache.IRedisCache
+	group  *singleflight.Group
+	logger *zap.SugaredLogger
 }
 
-func New(repo target.ITargetRepo, cache cache.IRedisCache, group *singleflight.Group) *URLService { //TODO: посмотреть, на что ругается
+func New(repo target.ITargetRepo, cache cache.IRedisCache,
+	group *singleflight.Group, logger *zap.SugaredLogger) *URLService { //TODO: посмотреть, на что ругается
 	return &URLService{
-		repo:  repo,
-		cache: cache,
-		group: group,
+		repo:   repo,
+		cache:  cache,
+		group:  group,
+		logger: logger,
 	}
 }
 
@@ -60,9 +64,10 @@ func (s *URLService) Create(
 
 	reddisErr := s.cache.Set(ctx, created.URL, dto, DURATION)
 	if reddisErr != nil {
-		fmt.Println("SET REDIS ERROR:", reddisErr.Error())
+		s.logger.Errorw("set redis error",
+			"redis error", reddisErr.Error(),
+		)
 	}
-
 	return created, nil
 }
 
@@ -123,15 +128,17 @@ func (s *URLService) Update(ctx context.Context, id int, params entities.PatchRe
 	key := fmt.Sprintf("user:%v", id)
 	_, err = s.cache.Delete(ctx, key)
 	if err != nil {
+		// s.logger.Logln("redis delete succesful") TODO: переделать
 		fmt.Println("REDIS DELETE SUCCESFUL")
 	}
 	return nil
 }
 
 func (s *URLService) Delete(ctx context.Context, id int) error {
-	status, err := s.cache.Delete(ctx, strconv.Itoa(id))
+	_, err := s.cache.Delete(ctx, strconv.Itoa(id))
 	if err == nil {
-		fmt.Println("REDIS DELETE ERROR", status)
+		s.logger.Errorw("redis delete error",
+			"error", err)
 	}
 	err = s.repo.Delete(ctx, id)
 	if err != nil {

@@ -6,9 +6,10 @@ import (
 	"URL_checker/internal/repo/dto"
 	"URL_checker/internal/service/cache"
 	"context"
-	"fmt"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,14 +23,16 @@ type ICheckService interface {
 }
 
 type CheckService struct {
-	repo  checks.ICheckRepository
-	cache cache.IRedisCache
+	repo   checks.ICheckRepository
+	cache  cache.IRedisCache
+	logger *zap.SugaredLogger
 }
 
-func NewCheckService(repo checks.ICheckRepository, cache cache.IRedisCache) ICheckService {
+func NewCheckService(repo checks.ICheckRepository, cache cache.IRedisCache, logger *zap.SugaredLogger) ICheckService {
 	return &CheckService{
-		repo:  repo,
-		cache: cache,
+		repo:   repo,
+		cache:  cache,
+		logger: logger,
 	}
 }
 
@@ -37,7 +40,8 @@ func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, er
 	key := strconv.Itoa(int(r.ID))
 	value, err := mapper.FromCheck(r)
 	if err != nil {
-		fmt.Println("------------- NOT SETTING IN REDIS ---------------")
+		s.logger.Errorw("unsuccesful setting in redis error",
+			"error", err)
 		return s.repo.Insert(ctx, r)
 	}
 	_ = s.cache.Set(ctx, key, value, DURATION)
@@ -45,9 +49,21 @@ func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, er
 }
 
 func (s *CheckService) LatestByTarget(ctx context.Context, targetID uint64) (dto.Checks, error) {
-	return s.repo.LatestByTarget(ctx, targetID)
+	target, err := s.repo.LatestByTarget(ctx, targetID)
+	if err != nil {
+		s.logger.Errorw("postgres error",
+			"error", err)
+		return dto.Checks{}, err
+	}
+	return target, nil
 }
 
 func (s *CheckService) ListByTarget(ctx context.Context, targetID uint64, limit int) ([]dto.Checks, error) {
-	return s.repo.ListByTarget(ctx, targetID, limit)
+	target, err := s.repo.ListByTarget(ctx, targetID, limit)
+	if err != nil {
+		s.logger.Errorw("postgres error",
+			"error", err)
+		return []dto.Checks{}, err
+	}
+	return target, nil
 }

@@ -5,6 +5,7 @@ import (
 	"URL_checker/internal/configs"
 	checksHandler "URL_checker/internal/handler/checks"
 	url "URL_checker/internal/handler/target"
+	"URL_checker/internal/logger"
 	"URL_checker/internal/repo/checks"
 	"URL_checker/internal/repo/dto"
 	"URL_checker/internal/repo/target"
@@ -53,7 +54,11 @@ func Run() error {
 	}
 
 	var group *singleflight.Group
-	targetService := serviceTarget.New(targetRepo, cache, group)
+	logger, loggerErr := logger.New()
+	if loggerErr != nil {
+		return loggerErr
+	}
+	targetService := serviceTarget.New(targetRepo, cache, group, logger)
 	targetHandler := url.New(targetService)
 
 	checkRepo, errCheck := checks.New(pgDb)
@@ -74,7 +79,7 @@ func Run() error {
 	workers.Start(ctx, queue)
 	go scheduler.Run(ctx)
 
-	checkService := serviceChecker.NewCheckService(checkRepo, cache)
+	checkService := serviceChecker.NewCheckService(checkRepo, cache, logger)
 	checkHandler := checksHandler.NewCheckHandler(checkService)
 
 	router := gin.Default()
