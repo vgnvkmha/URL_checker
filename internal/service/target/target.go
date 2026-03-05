@@ -7,7 +7,6 @@ import (
 	"URL_checker/internal/service/cache"
 	"URL_checker/internal/service/validation"
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -15,10 +14,14 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+const (
+	DURATION = time.Hour
+)
+
 type IURLService interface {
 	Create(ctx context.Context, t entities.Targets) (entities.Targets, error)
 	Get(ctx context.Context, id int) (entities.Targets, error)
-	List(ctx context.Context) ([]entities.Targets, error)
+	List(ctx context.Context) (map[string]interface{}, error)
 	Update(ctx context.Context, id int, params entities.PatchReq) error
 	Delete(ctx context.Context, id int) error
 	ListActive(ctx context.Context) ([]entities.Targets, error)
@@ -38,10 +41,6 @@ func New(repo target.ITargetRepo, cache cache.IRedisCache, group *singleflight.G
 	}
 }
 
-const (
-	DURATION = time.Hour
-)
-
 func (s *URLService) Create(
 	ctx context.Context,
 	t entities.Targets,
@@ -59,12 +58,9 @@ func (s *URLService) Create(
 
 	dto, _ := mapper.FromTarget(created)
 
-	data, err := json.Marshal(dto)
-	if err == nil {
-		reddisErr := s.cache.Set(ctx, created.URL, data, DURATION)
-		if reddisErr != nil {
-			fmt.Println("SET REDIS ERROR:", reddisErr.Error())
-		}
+	reddisErr := s.cache.Set(ctx, created.URL, dto, DURATION)
+	if reddisErr != nil {
+		fmt.Println("SET REDIS ERROR:", reddisErr.Error())
 	}
 
 	return created, nil
@@ -115,8 +111,8 @@ func (s *URLService) Get(ctx context.Context, id int) (entities.Targets, error) 
 	}
 }
 
-func (s *URLService) List(ctx context.Context) ([]entities.Targets, error) {
-	return s.repo.List(ctx)
+func (s *URLService) List(ctx context.Context) (map[string]interface{}, error) {
+	return s.cache.GetAll(ctx)
 }
 
 func (s *URLService) Update(ctx context.Context, id int, params entities.PatchReq) error {

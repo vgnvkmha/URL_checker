@@ -99,7 +99,16 @@ func (h *URLHandler) Update(c *gin.Context) {
 }
 
 func (h *URLHandler) ListActive(c *gin.Context) {
-	h.service.ListActive(c.Request.Context())
+	targets, err := h.service.ListActive(c.Request.Context())
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"active_targets": targets,
+	})
 }
 
 func (h *URLHandler) Delete(c *gin.Context) {
