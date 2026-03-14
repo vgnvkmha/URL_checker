@@ -3,9 +3,10 @@ package checker
 import (
 	"URL_checker/internal/repo/dto"
 	"context"
-	"log"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Checker interface {
@@ -14,11 +15,13 @@ type Checker interface {
 
 type HTTPChecker struct {
 	client *http.Client
+	logger *zap.SugaredLogger
 }
 
-func NewHTTPChecker() *HTTPChecker {
+func NewHTTPChecker(logger *zap.SugaredLogger) *HTTPChecker {
 	return &HTTPChecker{
 		client: NewHTTPClient(),
+		logger: logger.With("module", "checker"),
 	}
 }
 
@@ -38,23 +41,25 @@ func (c *HTTPChecker) Check(
 	target dto.Targets,
 ) (dto.Checks, error) {
 
+	const operation = "Check"
 	start := time.Now()
 
 	req, _ := http.NewRequest(http.MethodGet, target.URL, nil)
 
-	req.Header.Set("User-Agent", "curl/8.0")
+	req.Header.Set("User-Agent", "curl/8.0") //TODO: Убрать захардкоженные хеддеры
 	req.Header.Set("Accept", "text/html,application/xhtml+xml")
 	req.Header.Set("Accept-Language", "ru-RU,ru;q=0.9")
 
 	resp, err := http.DefaultClient.Do(req)
 	latency := time.Since(start)
-	log.Printf(
-		"CHECK done target=%d ok=%v",
-		target.ID,
-		target.Active,
-	)
 
 	if err != nil {
+		const red = "\033[31m"
+		const reset = "\033[0m"
+		c.logger.Infow(red+"Failed"+reset,
+			"operation", operation,
+			"target_id", target.ID,
+		)
 		return dto.Checks{
 			TargetId:  target.ID,
 			CheckedAt: time.Now(),
@@ -63,7 +68,13 @@ func (c *HTTPChecker) Check(
 			LatencyMs: latency.Milliseconds(),
 		}, nil
 	}
+
 	defer resp.Body.Close()
+
+	c.logger.Infow("Succesful",
+		"operation", operation,
+		"target_id", target.ID,
+	)
 
 	return dto.Checks{
 		TargetId:   target.ID,

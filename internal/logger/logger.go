@@ -2,13 +2,20 @@ package logger
 
 import (
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func New() (*zap.SugaredLogger, error) {
-	logger, err := zap.NewProduction()
+	config := zap.NewDevelopmentConfig()
+
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.Encoding = "console"
+
+	logger, err := config.Build()
 	if err != nil {
 		return nil, err
 	}
+	sugar := logger.Sugar()
 
-	return logger.Sugar(), nil
+	return sugar, nil
 }

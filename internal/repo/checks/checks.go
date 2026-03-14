@@ -4,7 +4,6 @@ import (
 	"URL_checker/internal/repo/dto"
 	"context"
 	"database/sql"
-	"log"
 )
 
 type ICheckRepository interface {
@@ -30,8 +29,6 @@ func (rCheck *CheckRepository) Insert(ctx context.Context, r dto.Checks) (dto.Ch
 	`)
 	var db, schema, path string
 	_ = row.Scan(&db, &schema, &path)
-
-	log.Printf("DB=%s SCHEMA=%s SEARCH_PATH=%s", db, schema, path)
 
 	query := `
 		INSERT INTO checks (target_id, ok, status_code, latency_ms, error)

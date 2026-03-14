@@ -30,14 +30,17 @@ type CheckService struct {
 
 func NewCheckService(repo checks.ICheckRepository, cache cache.IRedisCache, logger *zap.SugaredLogger) ICheckService {
 	return &CheckService{
-		repo:   repo,
-		cache:  cache,
-		logger: logger,
+		repo:  repo,
+		cache: cache,
+		logger: logger.With(
+			"module", "check",
+			"layer", "service"),
 	}
 }
 
 func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, error) {
 	key := strconv.Itoa(int(r.ID))
+	const operation = "Insert"
 	value, err := mapper.FromCheck(r)
 	if err != nil {
 		s.logger.Errorw("unsuccesful setting in redis error",
@@ -45,6 +48,9 @@ func (s *CheckService) Insert(ctx context.Context, r dto.Checks) (dto.Checks, er
 		return s.repo.Insert(ctx, r)
 	}
 	_ = s.cache.Set(ctx, key, value, DURATION)
+	s.logger.Infow("Succesful",
+		"operation", operation,
+	)
 	return s.repo.Insert(ctx, r)
 }
 

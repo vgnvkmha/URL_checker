@@ -47,12 +47,6 @@ func (s *Scheduler) Run(ctx context.Context) {
 			now := time.Now()
 
 			for _, t := range targets {
-				log.Printf(
-					"SCHEDULE target=%d next=%s active=%v",
-					t.ID,
-					schedule[t.ID],
-					t.Active,
-				)
 				next, exists := schedule[t.ID]
 				if !exists || now.After(next) {
 					select {

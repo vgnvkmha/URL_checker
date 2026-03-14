@@ -54,6 +54,7 @@ func Run() error {
 	}
 
 	var group *singleflight.Group
+
 	logger, loggerErr := logger.New()
 	if loggerErr != nil {
 		return loggerErr
@@ -70,8 +71,8 @@ func Run() error {
 	queue := make(chan dto.Targets, 100)
 	results := make(chan dto.Checks, 100)
 
-	httpChecker := checker.NewHTTPChecker()
-	writer := writer.NewWriter(checkRepo, results)
+	httpChecker := checker.NewHTTPChecker(logger)
+	writer := writer.NewWriter(checkRepo, results, logger)
 	workers := workerpool.New(httpChecker, results, 50)
 	scheduler := scheduler.New(queue, targetRepo)
 

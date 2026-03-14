@@ -4,7 +4,6 @@ import (
 	"URL_checker/internal/checker"
 	"URL_checker/internal/repo/dto"
 	"context"
-	"log"
 	"time"
 )
 
@@ -42,16 +41,8 @@ func (wp *WorkerPool) worker(ctx context.Context, id int, queue <-chan dto.Targe
 				ctx,
 				time.Duration(target.TimeoutMS)*time.Millisecond,
 			)
-			result, err := wp.checker.Check(checkCtx, target)
+			result, _ := wp.checker.Check(checkCtx, target)
 			cancel()
-
-			if err != nil {
-				log.Println("check error:", err)
-				continue
-			}
-
-			log.Printf("CHECK done target=%d url=%s ok=%v status=%d",
-				target.ID, target.URL, result.OK, result.StatusCode)
 
 			// ВАЖНО: отправляем результат в writer через канал
 			select {
