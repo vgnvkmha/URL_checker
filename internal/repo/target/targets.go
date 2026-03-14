@@ -50,7 +50,7 @@ func (r *TargetRepo) Create(ctx context.Context, t entities.Targets) (entities.T
 	)
 
 	if err != nil {
-		return entities.Targets{}, err
+		return entities.Targets{}, errors.New("Dublicate key error")
 	}
 
 	return t, nil
@@ -142,7 +142,7 @@ func (r *TargetRepo) List(
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error())
 	}
 	defer rows.Close()
 
@@ -167,7 +167,7 @@ func (r *TargetRepo) List(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, errors.New(err.Error())
 	}
 
 	return targets, nil
