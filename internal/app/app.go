@@ -87,5 +87,6 @@ func Run() error {
 	url.RegisterRoutes(router, targetHandler)
 	checksHandler.RegisterRoutes(router, checkHandler)
 
+	router.RunTLS(":8443", "cert.pem", "key.pem")
 	return router.Run(":8080")
 }
