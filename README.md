@@ -45,7 +45,10 @@ REDIS_DB=0
 ```bash
 go run ./cmd/api/main.go
 ```
-
+## После этого сервис будет слушать на
+```
+https://localhost:8080
+```
 ---
 
 ## 📡 API Endpoints
